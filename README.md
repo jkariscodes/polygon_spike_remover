@@ -24,7 +24,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/jkariukidev/polygon_spike_remover">
-    <img src="img/icons/icon.png" alt="Logo" width="80" height="80">
+    <img src="img/icons/readme/qgis_plugin_info.png" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">Polygon Spike Remover</h3>
@@ -77,7 +77,7 @@
 
 [![Product Name Screen Shot][product-screenshot]](img/readme/user_interface.png)
 
-The Spike Removal is a QGIS Desktop plugin that loads an OGC GeoPackage polygon layer,checks for existing spikes
+The Polygon Spike Remover is a QGIS Desktop plugin that loads an OGC GeoPackage polygon layer,checks for existing spikes
 and then removes them saving the cleaned data in a new GeoPackage file.
 The main steps are three:
 * Clone this repository or download in the correct section.
@@ -245,6 +245,6 @@ Use this space to list resources you find helpful and would like to give credit 
 [license-url]: https://github.com/jkariuki/polygon_spike_remover/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/josephkariuki
-[product-screenshot]: img/readme/user_interface.png
+[product-screenshot]: img/readme/qgis_plugin_info.png
 
 [//]: # ([development-workflow]: img/readme/development_workflow.png)
