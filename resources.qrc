@@ -1,5 +1,8 @@
 <RCC>
     <qresource prefix="/plugins/polygon_spike_remover" >
         <file>img/icons/icon.png</file>
+        <file>img/icons/clear_map.png</file>
+        <file>img/icons/load_data.png</file>
+        <file>img/icons/remove_spike.png</file>
     </qresource>
 </RCC>

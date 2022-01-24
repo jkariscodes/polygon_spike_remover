@@ -22,9 +22,14 @@
  *                                                                         *
  ***************************************************************************/
 """
+from osgeo import ogr
+from qgis.core import QgsVectorLayer, QgsProject
+from qgis.gui import QgsMapCanvas, QgsMessageBar
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
-from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtGui import QIcon, QPixmap
+from qgis.PyQt.QtWidgets import (
+    QAction, QWidget, QVBoxLayout, QPushButton, QFileDialog
+)
 # Initialize Qt resources from file resources.py
 from .resources import *
 
@@ -46,6 +51,10 @@ class PolygonSpikeRemover:
         """
         # Save reference to the QGIS interface
         self.iface = iface
+        # QGIS items
+        self.map_canvas = QgsMapCanvas()
+        self.map_canvas.refresh()
+        self.qgs_project = QgsProject()
 
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
@@ -73,6 +82,27 @@ class PolygonSpikeRemover:
 
         self.pluginIsActive = False
         self.dockwidget = None
+        self.widget = QWidget()
+        self.file_dlg = QFileDialog()
+        self.vbox_layout = QVBoxLayout()
+        self._btn_icons = {
+            'load_data': QPixmap(
+                ':/plugins/polygon_spike_remover/img/icons/load_data.png'
+            ),
+            'remove_spike': QPixmap(
+                ':/plugins/polygon_spike_remover/img/icons/remove_spike.png'
+            ),
+            'clear_map': QPixmap(
+                ':/plugins/polygon_spike_remover/img/icons/clear_map.png'
+            )
+        }
+        self.btn_load_gpkg = QPushButton()
+        self.btn_remove_spike = QPushButton()
+        self.btn_clear_map = QPushButton()
+        # Connecting signals to slots
+        self.btn_load_gpkg.clicked.connect(self._on_load_geopackage)
+        self.btn_remove_spike.clicked.connect(self._on_remove_spike)
+        self.btn_clear_map.clicked.connect(self._on_clear_map)
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -203,8 +233,6 @@ class PolygonSpikeRemover:
         # remove the toolbar
         del self.toolbar
 
-    # --------------------------------------------------------------------------
-
     def run(self):
         """Run method that loads and starts the plugin"""
 
@@ -216,14 +244,88 @@ class PolygonSpikeRemover:
             # dockwidget may not exist if:
             #    first run of plugin
             #    removed on close (see self.onClosePlugin method)
-            if self.dockwidget == None:
+            if not self.dockwidget:
                 # Create the dockwidget (after translation) and keep reference
                 self.dockwidget = PolygonSpikeRemoverDockWidget()
 
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
-
+            # Set button text
+            self.btn_load_gpkg.setText('Open geopackage...')
+            self.btn_remove_spike.setText('Remove spike(s)')
+            self.btn_clear_map.setText('Clear map view')
+            # Set button icons
+            self.btn_load_gpkg.setIcon(
+                QIcon(self._btn_icons.get('load_data'))
+            )
+            self.btn_remove_spike.setIcon(
+                QIcon(self._btn_icons.get('remove_spike'))
+            )
+            self.btn_clear_map.setIcon(
+                QIcon(self._btn_icons.get('clear_map'))
+            )
+            # Add buttons to layout
+            self.vbox_layout.addWidget(self.btn_load_gpkg)
+            self.vbox_layout.addWidget(self.btn_remove_spike)
+            self.vbox_layout.addWidget(self.btn_clear_map)
+            self.widget.setLayout(self.vbox_layout)
+            self.dockwidget.setWidget(self.widget)
             # show the dockwidget
-            # TODO: fix to allow choice of dock location
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
+            # Check if layers exist in map view
+            if len(self.iface.mapCanvas().layers()) == 0:
+                self.btn_clear_map.setDisabled(True)
+                self.btn_remove_spike.setDisabled(True)
+            else:
+                self.btn_clear_map.setEnabled(True)
+                self.btn_remove_spike.setEnabled(True)
+
+    def _on_load_geopackage(self):
+        """
+        Slot raised to open a GeoPackage file from the file system.
+        """
+        path, _ = self.file_dlg.getOpenFileName(
+            None,
+            'Select a GeoPackage file...',
+            '~/',
+            '*.gpkg'
+        )
+
+        if path:
+            self._load_layer(path)
+
+    def _load_layer(self, file_path):
+        """
+        Check geometry type of each layer in the geopackage file.
+        """
+        # TODO check if layers are polygons
+        gpkg_layers = [n.GetName() for n in ogr.Open(file_path)]
+        for name in gpkg_layers:
+            self.iface.addVectorLayer(
+                file_path+"|layername="+name, name, 'ogr'
+            )
+
+        if len(self.iface.mapCanvas().layers()) == 0:
+            self.btn_remove_spike.setEnabled(True)
+            self.btn_clear_map.setEnabled(True)
+
+    def _on_remove_spike(self):
+        """
+        Slot raised when button for removing spikes is clicked.
+        """
+        pass
+
+    def _on_clear_map(self):
+        """
+        Remove all layers from the map view.
+        """
+        if len(self.iface.mapCanvas().layers()) > 0:
+            QgsProject.instance().removeAllMapLayers()
+            QgsProject.instance().clear()
+
+        if len(self.iface.mapCanvas().layers()) == 0:
+            self.btn_remove_spike.setDisabled(True)
+            self.btn_clear_map.setDisabled(True)
+
+
