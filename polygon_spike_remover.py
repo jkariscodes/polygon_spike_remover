@@ -22,20 +22,19 @@
  *                                                                         *
  ***************************************************************************/
 """
+
+import os.path
+
 from osgeo import ogr
-from qgis.core import QgsVectorLayer, QgsProject
-from qgis.gui import QgsMapCanvas, QgsMessageBar
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon, QPixmap
 from qgis.PyQt.QtWidgets import (
     QAction, QWidget, QVBoxLayout, QPushButton, QFileDialog
 )
-# Initialize Qt resources from file resources.py
-from .resources import *
+from qgis.core import QgsProject
+from qgis.gui import QgsMapCanvas
 
-# Import the code for the DockWidget
 from .polygon_spike_remover_dockwidget import PolygonSpikeRemoverDockWidget
-import os.path
 
 
 class PolygonSpikeRemover:
@@ -74,12 +73,8 @@ class PolygonSpikeRemover:
         # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&Polygon Spike Remover')
-        # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'PolygonSpikeRemover')
         self.toolbar.setObjectName(u'PolygonSpikeRemover')
-
-        # print "** INITIALIZING PolygonSpikeRemover"
-
         self.pluginIsActive = False
         self.dockwidget = None
         self.widget = QWidget()
@@ -211,10 +206,6 @@ class PolygonSpikeRemover:
 
         # disconnects
         self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
-
-        # remove this statement if dockwidget is to remain
-        # for reuse if plugin is reopened
-        # Commented next statement since it causes QGIS crashe
         # when closing the docked window:
         # self.dockwidget = None
 
@@ -222,15 +213,11 @@ class PolygonSpikeRemover:
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
-
-        # print "** UNLOAD PolygonSpikeRemover"
-
         for action in self.actions:
             self.iface.removePluginVectorMenu(
                 self.tr(u'&Polygon Spike Remover'),
                 action)
             self.iface.removeToolBarIcon(action)
-        # remove the toolbar
         del self.toolbar
 
     def run(self):
@@ -238,16 +225,8 @@ class PolygonSpikeRemover:
 
         if not self.pluginIsActive:
             self.pluginIsActive = True
-
-            # print "** STARTING PolygonSpikeRemover"
-
-            # dockwidget may not exist if:
-            #    first run of plugin
-            #    removed on close (see self.onClosePlugin method)
             if not self.dockwidget:
-                # Create the dockwidget (after translation) and keep reference
                 self.dockwidget = PolygonSpikeRemoverDockWidget()
-
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
             # Set button text
@@ -302,8 +281,9 @@ class PolygonSpikeRemover:
         # TODO check if layers are polygons
         gpkg_layers = [n.GetName() for n in ogr.Open(file_path)]
         for name in gpkg_layers:
+            # vlayer.geometryType() == QgsWkbTypes.PolygonGeometry
             self.iface.addVectorLayer(
-                file_path+"|layername="+name, name, 'ogr'
+                file_path + "|layername=" + name, name, 'ogr'
             )
 
         if len(self.iface.mapCanvas().layers()) == 0:
@@ -314,6 +294,9 @@ class PolygonSpikeRemover:
         """
         Slot raised when button for removing spikes is clicked.
         """
+        # for layer in self.iface.mapCanvas().layers():
+        # print(dir(GeoPackageHandler))
+        # print(dir(remove_spike_handler.GeometryProcessingHandler))
         pass
 
     def _on_clear_map(self):
@@ -327,5 +310,3 @@ class PolygonSpikeRemover:
         if len(self.iface.mapCanvas().layers()) == 0:
             self.btn_remove_spike.setDisabled(True)
             self.btn_clear_map.setDisabled(True)
-
-
