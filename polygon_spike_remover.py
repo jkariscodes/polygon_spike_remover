@@ -22,20 +22,21 @@
  *                                                                         *
  ***************************************************************************/
 """
+
+import os.path
+from .spike_remover_utils import *
 from osgeo import ogr
-from qgis.core import QgsVectorLayer, QgsProject
-from qgis.gui import QgsMapCanvas, QgsMessageBar
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon, QPixmap
 from qgis.PyQt.QtWidgets import (
-    QAction, QWidget, QVBoxLayout, QPushButton, QFileDialog
+    QAction, QWidget, QVBoxLayout, QPushButton, QFileDialog, QMessageBox
 )
-# Initialize Qt resources from file resources.py
+from qgis.core import QgsProject
+from qgis.gui import QgsMapCanvas
+
 from .resources import *
 
-# Import the code for the DockWidget
 from .polygon_spike_remover_dockwidget import PolygonSpikeRemoverDockWidget
-import os.path
 
 
 class PolygonSpikeRemover:
@@ -74,12 +75,8 @@ class PolygonSpikeRemover:
         # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&Polygon Spike Remover')
-        # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'PolygonSpikeRemover')
         self.toolbar.setObjectName(u'PolygonSpikeRemover')
-
-        # print "** INITIALIZING PolygonSpikeRemover"
-
         self.pluginIsActive = False
         self.dockwidget = None
         self.widget = QWidget()
@@ -211,10 +208,6 @@ class PolygonSpikeRemover:
 
         # disconnects
         self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
-
-        # remove this statement if dockwidget is to remain
-        # for reuse if plugin is reopened
-        # Commented next statement since it causes QGIS crashe
         # when closing the docked window:
         # self.dockwidget = None
 
@@ -222,15 +215,11 @@ class PolygonSpikeRemover:
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
-
-        # print "** UNLOAD PolygonSpikeRemover"
-
         for action in self.actions:
             self.iface.removePluginVectorMenu(
                 self.tr(u'&Polygon Spike Remover'),
                 action)
             self.iface.removeToolBarIcon(action)
-        # remove the toolbar
         del self.toolbar
 
     def run(self):
@@ -238,16 +227,8 @@ class PolygonSpikeRemover:
 
         if not self.pluginIsActive:
             self.pluginIsActive = True
-
-            # print "** STARTING PolygonSpikeRemover"
-
-            # dockwidget may not exist if:
-            #    first run of plugin
-            #    removed on close (see self.onClosePlugin method)
             if not self.dockwidget:
-                # Create the dockwidget (after translation) and keep reference
                 self.dockwidget = PolygonSpikeRemoverDockWidget()
-
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
             # Set button text
@@ -298,12 +279,15 @@ class PolygonSpikeRemover:
     def _load_layer(self, file_path):
         """
         Check geometry type of each layer in the geopackage file.
+        :param file_path: String for path of layer.
+        :type file_path: str, QString
         """
         # TODO check if layers are polygons
         gpkg_layers = [n.GetName() for n in ogr.Open(file_path)]
         for name in gpkg_layers:
+            # vlayer.geometryType() == QgsWkbTypes.PolygonGeometry
             self.iface.addVectorLayer(
-                file_path+"|layername="+name, name, 'ogr'
+                file_path + "|layername=" + name, name, 'ogr'
             )
 
         if len(self.iface.mapCanvas().layers()) == 0:
@@ -314,7 +298,119 @@ class PolygonSpikeRemover:
         """
         Slot raised when button for removing spikes is clicked.
         """
-        pass
+        loaded_layers = self.iface.mapCanvas().layers()
+        if len(loaded_layers) > 0:
+            layer_paths = [layer.dataProvider().dataSourceUri()
+                           for layer in self.iface.mapCanvas().layers()]
+            self._process_gpkg(layer_paths)
+
+    def _process_gpkg(self, paths):
+        """
+        Process loaded layers into correct geometry where errors exist.
+        :param paths: List containing all paths.
+        :type paths: str
+        """
+        for path in paths:
+            path_to_gpkg = path.split('|')[0]
+            ds = load_geopackage(path_to_gpkg)
+            # Check validity of layer CRS
+            if not validate_crs(ds):
+                msg_box = QMessageBox()
+                msg_box.setIcon(QMessageBox.Critical)
+                msg_box.setText("Error in processing layer CRS")
+                msg_box.setWindowTitle("GeoPackage processing Error")
+                msg_box.setDetailedText(
+                    f'The geopackage layer {path_to_gpkg} CRS is invalid.'
+                )
+                msg_box.exec()
+            else:
+                self._process_azimuths(ds, path)
+
+    def _process_azimuths(self, data_source, file_path):
+        """
+        Performs forward and inverse geodetic, or Great Circle, computations.
+        The forward computation (using the ‘fwd’ method) involves determining
+        latitude, longitude and back azimuth of a terminus point given the
+        latitude and longitude of an initial point, plus azimuth and distance.
+        :param data_source: Container for the data source.
+        :type data_source: GeoPandasDataFrame
+        :param file_path: Path to the data.
+        :type file_path: str
+        """
+        azimuth_ext = extract_crs_geod(data_source)
+        process_geometry = GeometryProcessor(1.0, 100000)
+        res = []
+
+        for _item in data_source.itertuples():
+            geom = _item.geometry
+            ext = process_geometry.process_sequence(
+                azimuth_ext,
+                geom.exterior.coords
+            )
+            interiors = []
+            for inner in geom.interiors:
+                processed_interior_ring = process_geometry.process_sequence(
+                    azimuth_ext,
+                    inner.coords,
+                )
+
+                interiors.append(processed_interior_ring)
+
+            res.append((_item.name, Polygon(ext, interiors)))
+
+        processed_ds = GeoDataFrame(
+            res,
+            columns=['name', 'geometry'],
+            crs=data_source.crs
+        )
+        self._save_gpkg(file_path, processed_ds)
+
+    def _save_gpkg(self, output, clean_ds):
+        """
+        Save the processed GeoPackage to a given location in the file system.
+        :param output: Container for the data source.
+        :type output: GeoPandasDataFrame
+        :param clean_ds: Path to the cleaned data frame.
+        :type clean_ds: GeoPandas DataFrame
+        """
+        path = output.split('|')[0]
+        file_path = path.partition('.')
+        output_path = file_path[0] + '_output' + '.gpkg'
+        if output_path:
+            save_geopackage(output_path, clean_ds)
+            self._display_cleaned_gpkg(output_path)
+
+    def _display_cleaned_gpkg(self, path):
+        """
+        Load processed geopackage file in QGIS Map View.
+        :param path: Location of the cleaned GeoPackage file..
+        :type path: str
+        """
+        if not path:
+            msg_box = QMessageBox()
+            msg_box.setIcon(QMessageBox.Critical)
+            msg_box.setText("Error in loading layer")
+            msg_box.setWindowTitle("GeoPackage Loading Error")
+            msg_box.setDetailedText(
+                f'The geopackage layer {path} could not be loaded.'
+            )
+            msg_box.exec()
+        else:
+            # Add processed layer in QGIS Map view
+            v_layer = self.iface.addVectorLayer(
+                path, 'output', 'ogr'
+            )
+            if not v_layer:
+                msg_box = QMessageBox()
+                msg_box.setIcon(QMessageBox.Critical)
+                msg_box.setText("Invalid GeoPackage layer")
+                msg_box.setWindowTitle("GeoPackage Loading Error")
+                msg_box.setDetailedText(
+                    f'The geopackage layer {path} is invalid.'
+                )
+                msg_box.exec()
+
+            self.btn_remove_spike.setDisabled(True)
 
     def _on_clear_map(self):
         """
@@ -327,5 +423,3 @@ class PolygonSpikeRemover:
         if len(self.iface.mapCanvas().layers()) == 0:
             self.btn_remove_spike.setDisabled(True)
             self.btn_clear_map.setDisabled(True)
-
-
