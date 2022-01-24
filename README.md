@@ -17,12 +17,6 @@
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![GNU License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
 
 
 
@@ -141,7 +135,24 @@ Below is an example of how you can install the components making up the plugin e
 
 The development workflow procdure is as shown below:
 <a href="https://github.com/jkariukidev/">
-    <img src="img/readme/development_workflow.png" alt="Logo" width="550" height="750">
+    <img src="img/readme/development_workflow.png" alt="Logo">
+  </a>
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+
+### Input
+
+<a href="https://github.com/jkariukidev/">
+    <img src="img/readme/input_layer.png" alt="Input layer">
+  </a>
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+### Output
+
+<a href="https://github.com/jkariukidev/">
+    <img src="img/readme/output_layer.png" alt="Input layer">
   </a>
 
 <p align="right">(<a href="#top">back to top</a>)</p>
