@@ -22,7 +22,7 @@ class TestInit(unittest.TestCase):
     Based heavily on the validator class by Alessandro
     Passoti available here:
 
-    http://github.com/qgis/qgis-django/blob/master/qgis-app/
+    https://github.com/qgis/qgis-django/blob/master/qgis-app/
              plugins/validator.py
 
     """
@@ -59,6 +59,7 @@ class TestInit(unittest.TestCase):
                 expectation, file_path))
 
             self.assertIn(expectation, dict(metadata), message)
+
 
 if __name__ == '__main__':
     unittest.main()

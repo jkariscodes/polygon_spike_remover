@@ -12,15 +12,16 @@ __author__ = 'contact@josephkariuki.com'
 __date__ = '2022-01-23'
 __copyright__ = 'Copyright 2022, Joseph Kariuki'
 
+import sys
 import unittest
 
-from qgis.PyQt.QtGui import QDockWidget
+from qgis.PyQt.QtWidgets import QApplication
 
 from polygon_spike_remover_dockwidget import PolygonSpikeRemoverDockWidget
 
 from utilities import get_qgis_app
 
-QGIS_APP = get_qgis_app()
+QGIS_APP = get_qgis_app(), QApplication(sys.argv)
 
 
 class PolygonSpikeRemoverDockWidgetTest(unittest.TestCase):
@@ -38,8 +39,8 @@ class PolygonSpikeRemoverDockWidgetTest(unittest.TestCase):
         """Test we can click OK."""
         pass
 
+
 if __name__ == "__main__":
-    suite = unittest.makeSuite(PolygonSpikeRemoverDialogTest)
+    suite = unittest.makeSuite(PolygonSpikeRemoverDockWidgetTest)
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
-

@@ -7,7 +7,8 @@
      (at your option) any later version.
 
 """
-from .utilities import get_qgis_app
+# from .utilities import get_qgis_app
+from utilities import get_qgis_app
 
 __author__ = 'ismailsunni@yahoo.co.id'
 __date__ = '12/10/2011'
