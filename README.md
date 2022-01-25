@@ -24,7 +24,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/jkariukidev/polygon_spike_remover">
-    <img src="img/icons/readme/qgis_plugin_info.png" alt="Logo" width="80" height="80">
+    <img src="img/icons/icon.png" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">Polygon Spike Remover</h3>
@@ -41,34 +41,6 @@
     <a href="https://github.com/jkariukidev/polygon_spike_remover/issues">Request Feature</a>
   </p>
 </div>
-
-
-
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
-</details>
 
 
 
@@ -119,15 +91,23 @@ This is an example of how to list things you need to use the software and how to
 
 ### Installation
 
-Below is an example of how you can install the components making up the plugin ecosystem
+Below is an example of how you can install the components making up the plugin ecosystem. The system has been tested in
+Windows only.
 
-1. Install QGIS, Python, PyQt5
-2. Clone the repo
+1. <b>Download and install QGIS</b> using the OSGEO4W network installer which can be downloaded from the 
+[QGIS Download page](https://qgis.org/en/site/forusers/download.html). The network installer has the advantage of 
+allowing the user to install additional packages and dependencies such as GeoPandas, Pyproj and Shapely.
+2. Navigate into the QGIS plugins directory which is at <em>C:\Users\<AccountName>\AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins</em>
+3. Clone the project using the git command shown below in command prompt or powershell.
    ```sh
    git clone https://github.com/jkariukidev/polygon_spike_remover.git
    ```
-3. Install requirements such as QGIS Desktop, Python, Pip and PyQt5
-4. Run QGIS Desktop and use the plugin
+4. Run QGIS Desktop from the shortcut in Start Menu. The menu shortcut appears as shown below.</br></br>
+<img src="img/readme/qgis_shortcut.png" align="center"/></br></br>
+
+5. You will now notice a plugin with the following shortcut in the Vector Menu and in the toolbar.</br></br>
+<img src="img/readme/plugin_menu.png"/></br></br>
+<img src="img/readme/toolbar_shortcut.png"/>
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -200,7 +180,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the GNU GPL License. See `LICENSE.txt` for more information.
+Distributed under the GNU GPL License. See [`LICENSE.txt`](LICENSE) for more information.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
