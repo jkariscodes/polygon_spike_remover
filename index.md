@@ -15,7 +15,7 @@ To install the requirements (tested on Windows 10 OS):
 network installer which provides more options for downloading of package dependencies and libraries as opposed to the usual
 installer. The network installer appears in the file as shown below.
 
-<img src="https://github.com/jkariukidev/polygon_spike_remover/blob/main/img/readme/osgeo4w_installer.png">
+![qgis_installer](https://user-images.githubusercontent.com/23359514/151498135-350b4e49-9118-4241-bcb3-6d6416893a2c.png)
 
 * Running the setup installer displays an installation wizard. The pages of the wizard are as follows:
 Ensure the "Advanced Install" radio button is checked below. Click Next button to continue. 
@@ -93,10 +93,28 @@ at the top, type 'Polygon Spike Remover' and it shall show the plugin and click 
 <img src="https://raw.githubusercontent.com/jkariukidev/polygon_spike_remover/main/img/readme/qgis_plugin_info.png"/>
 
 4. When one clicks the plugin shortcut, it launches a docked widget user interface containing three buttons with icons and 
-text as shown below.
+text as shown below. Note that the second and last buttons are disabled by default. 
 
 <img src="https://raw.githubusercontent.com/jkariukidev/polygon_spike_remover/main/img/readme/user_interface.png"/>
 
+5. On clicking "Open GeoPackage" button, a file dialog is opened and displays the file system. One can use it to navigate to the location of the geopackage with spikes. The file dialog appears as shown below.
+
+![spiky_polyon_file_dialog](https://user-images.githubusercontent.com/23359514/151498840-1c967b85-2ce7-475c-bfdf-e704221fef50.png)
+
+6. After selecting the geopackage, it is displayed in the QGIS map view area as shown below and the second and third buttons are now enabled since there is a layer that has been loaded.
+
+![layer_on_qgis_mapview](https://user-images.githubusercontent.com/23359514/151499086-284eaca7-7b26-4ed4-8260-6a6754b8f7b9.png)
+
+7. To check the polygon for spikes, click "Remove Spike(s)" button and it initiates a process to remove spikes on the layer. And displays the geometrically corrected layer in the map view in addition to the previous layer as shown below. Also note the button has been disabled after the process is complete.
+
+![cleaned_polygon](https://user-images.githubusercontent.com/23359514/151499350-02211e54-0b89-4f80-b44e-6099c5143cab.png)
+
+8. Finally, to remove all the layers in the map view, click the "Clear map view" button. Once layers are cleared, the state returns to how it was previously. 
+
+![post_clear_mapview](https://user-images.githubusercontent.com/23359514/151499693-2390925f-4851-4246-8b8b-e7b98d40653a.png)
+
+
+The above procedures summarize the working of the plugin. In the event of any issues or enhancements, please create an issue or a pull request. 
 
 
 ### Support or Contact
