@@ -151,6 +151,8 @@ Below is the input layer as it appears in QGIS Desktop map view. The input data 
 Below is the output layer as it appears in QGIS Desktop map view after processing.
 
 <div align="center">
+  
+  ![Output layer][output-layer] 
 
 </div>
 
@@ -162,6 +164,12 @@ Below is the output layer as it appears in QGIS Desktop map view after processin
 The usual libraries and processes of QGIS Desktop's geometry checker (from tests) cannot be able to identify spikes in 
 polygons as invalid geometries. This is where this plugin comes to play. For details on how to use, please refer to the
 **[Documentation Page](https://jkariukidev.github.io/polygon_spike_remover)**.
+  
+
+https://user-images.githubusercontent.com/23359514/151496970-a592883b-5567-4711-a89a-a1fb665711b1.mp4
+
+
+ 
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
