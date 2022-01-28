@@ -163,9 +163,7 @@ The usual libraries and processes of QGIS Desktop's geometry checker (from tests
 polygons as invalid geometries. This is where this plugin comes to play. For details on how to use, please refer to the
 **[Documentation Page](https://jkariukidev.github.io/polygon_spike_remover)**.
 
-<video width="320" height="240" controls>
-  <source src="img/polygon_spike_remover.mp4" type="video/mp4">
-</video>
+![psr](img/polygon_spike_remover.mp4)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
