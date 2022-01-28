@@ -1,7 +1,7 @@
 from geopandas import read_file, GeoDataFrame
 from pyproj import Geod
 from shapely import coords
-from shapely.geometry import Polygon
+from shapely import geometry
 
 
 def get_angle_between_azimuths(azimuth1, azimuth2) -> float:

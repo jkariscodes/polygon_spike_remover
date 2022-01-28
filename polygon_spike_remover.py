@@ -22,10 +22,6 @@
  *                                                                         *
  ***************************************************************************/
 """
-
-import os.path
-from .spike_remover_utils import *
-from osgeo import ogr
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon, QPixmap
 from qgis.PyQt.QtWidgets import (
@@ -35,8 +31,10 @@ from qgis.core import QgsProject
 from qgis.gui import QgsMapCanvas
 
 from .resources import *
-
+from .spike_remover_utils import *
 from .polygon_spike_remover_dockwidget import PolygonSpikeRemoverDockWidget
+import os.path
+from osgeo import ogr
 
 
 class PolygonSpikeRemover:
@@ -79,27 +77,13 @@ class PolygonSpikeRemover:
         self.toolbar.setObjectName(u'PolygonSpikeRemover')
         self.pluginIsActive = False
         self.dockwidget = None
-        self.widget = QWidget()
-        self.file_dlg = QFileDialog()
-        self.vbox_layout = QVBoxLayout()
-        self._btn_icons = {
-            'load_data': QPixmap(
-                ':/plugins/polygon_spike_remover/img/icons/load_data.png'
-            ),
-            'remove_spike': QPixmap(
-                ':/plugins/polygon_spike_remover/img/icons/remove_spike.png'
-            ),
-            'clear_map': QPixmap(
-                ':/plugins/polygon_spike_remover/img/icons/clear_map.png'
-            )
-        }
-        self.btn_load_gpkg = QPushButton()
-        self.btn_remove_spike = QPushButton()
-        self.btn_clear_map = QPushButton()
-        # Connecting signals to slots
-        self.btn_load_gpkg.clicked.connect(self._on_load_geopackage)
-        self.btn_remove_spike.clicked.connect(self._on_remove_spike)
-        self.btn_clear_map.clicked.connect(self._on_clear_map)
+        self._btn_icons = None
+        self.widget = None
+        self.file_dlg = None
+        self.vbox_layout = None
+        self.btn_load_gpkg = None
+        self.btn_remove_spike = None
+        self.btn_clear_map = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -232,10 +216,28 @@ class PolygonSpikeRemover:
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
             # Set button text
-            self.btn_load_gpkg.setText('Open geopackage...')
-            self.btn_remove_spike.setText('Remove spike(s)')
-            self.btn_clear_map.setText('Clear map view')
+            if not self.btn_load_gpkg:
+                self.btn_load_gpkg = QPushButton()
+                self.btn_load_gpkg.setText('Open geopackage...')
+            if not self.btn_remove_spike:
+                self.btn_remove_spike = QPushButton()
+                self.btn_remove_spike.setText('Remove spike(s)')
+            if not self.btn_clear_map:
+                self.btn_clear_map = QPushButton()
+                self.btn_clear_map.setText('Clear map view')
             # Set button icons
+            if not self._btn_icons:
+                self._btn_icons = {
+                    'load_data': QPixmap(
+                        ':/plugins/polygon_spike_remover/img/icons/load_data.png'
+                    ),
+                    'remove_spike': QPixmap(
+                        ':/plugins/polygon_spike_remover/img/icons/remove_spike.png'
+                    ),
+                    'clear_map': QPixmap(
+                        ':/plugins/polygon_spike_remover/img/icons/clear_map.png'
+                    )
+                }
             self.btn_load_gpkg.setIcon(
                 QIcon(self._btn_icons.get('load_data'))
             )
@@ -245,11 +247,21 @@ class PolygonSpikeRemover:
             self.btn_clear_map.setIcon(
                 QIcon(self._btn_icons.get('clear_map'))
             )
+            # Connecting signals to slots
+            self.btn_load_gpkg.clicked.connect(self._on_load_geopackage)
+            self.btn_remove_spike.clicked.connect(self._on_remove_spike)
+            self.btn_clear_map.clicked.connect(self._on_clear_map)
             # Add buttons to layout
-            self.vbox_layout.addWidget(self.btn_load_gpkg)
-            self.vbox_layout.addWidget(self.btn_remove_spike)
-            self.vbox_layout.addWidget(self.btn_clear_map)
-            self.widget.setLayout(self.vbox_layout)
+            if not self.vbox_layout:
+                self.vbox_layout = QVBoxLayout()
+                self.vbox_layout.addWidget(self.btn_load_gpkg)
+                self.vbox_layout.addWidget(self.btn_remove_spike)
+                self.vbox_layout.addWidget(self.btn_clear_map)
+
+            if not self.widget:
+                self.widget = QWidget()
+                self.widget.setLayout(self.vbox_layout)
+
             self.dockwidget.setWidget(self.widget)
             # show the dockwidget
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
@@ -266,15 +278,17 @@ class PolygonSpikeRemover:
         """
         Slot raised to open a GeoPackage file from the file system.
         """
-        path, _ = self.file_dlg.getOpenFileName(
-            None,
-            'Select a GeoPackage file...',
-            '~/',
-            '*.gpkg'
-        )
+        if not self.file_dlg:
+            self.file_dlg = QFileDialog()
+            path, _ = self.file_dlg.getOpenFileName(
+                None,
+                'Select a GeoPackage file...',
+                '~/',
+                '*.gpkg'
+            )
 
-        if path:
-            self._load_layer(path)
+            if path:
+                self._load_layer(path)
 
     def _load_layer(self, file_path):
         """
@@ -356,7 +370,7 @@ class PolygonSpikeRemover:
 
                 interiors.append(processed_interior_ring)
 
-            res.append((_item.name, Polygon(ext, interiors)))
+            res.append((_item.name, geometry.Polygon(ext, interiors)))
 
         processed_ds = GeoDataFrame(
             res,
